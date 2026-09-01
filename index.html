@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>Bye-pocalypse Draft Planner</title>
+<style>
+:root{
+  --bg:#101828;--bg2:#162033;--panel:#182338;--panel2:#202d45;--line:#33415c;
+  --text:#f6f8fc;--muted:#aeb9cc;--accent:#7c9cff;--accentText:#08101d;
+  --good:#2fbf71;--warn:#f5bd3d;--bad:#ef5b5b;--danger:#b92d2d;
+  --shadow:0 12px 34px rgba(0,0,0,.22);
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:linear-gradient(135deg,var(--bg),var(--bg2));color:var(--text);min-height:100vh}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.wrap{max-width:1220px;margin:auto;padding:18px}
+header{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.head{max-width:1220px;margin:auto;padding:14px 18px;display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.brand h1{font-size:clamp(22px,4vw,34px);margin:0;letter-spacing:-.03em}
+.brand .sub{font-size:13px;color:var(--muted);margin-top:3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:0;border-radius:11px;padding:10px 13px;background:var(--accent);color:var(--accentText);font-weight:800;cursor:pointer;min-height:42px}
+.btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:var(--shadow)}
+.card h2,.card h3{margin:0 0 12px}
+.notice{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 12px;color:var(--muted);font-size:13px;line-height:1.45}
+.searchbox{position:relative}
+.searchrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+input,select{width:100%;border:1px solid var(--line);border-radius:11px;background:var(--bg2);color:var(--text);padding:11px 12px;min-height:44px;outline:none}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 20%,transparent)}
+.results{position:absolute;left:0;right:0;top:50px;z-index:25;background:var(--panel);border:1px solid var(--line);border-radius:13px;box-shadow:0 16px 40px rgba(0,0,0,.35);max-height:430px;overflow:auto;display:none}
+.results.open{display:block}
+.result{padding:10px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+.result:last-child{border-bottom:0}
+.playername{font-weight:850}
+.meta{font-size:12px;color:var(--muted);margin-top:3px}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.pill{font-size:11px;border-radius:999px;padding:3px 7px;background:var(--panel2);border:1px solid var(--line);color:var(--muted)}
+.risk-good{color:var(--good)} .risk-warn{color:var(--warn)} .risk-bad{color:var(--bad)}
+.resultBtns{display:flex;gap:6px}
+.mini{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:9px;padding:8px 9px;font-weight:750;cursor:pointer;min-height:38px}
+.mini.primary{background:var(--accent);color:var(--accentText);border-color:transparent}
+.statusline{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--warn);display:inline-block}
+.dot.good{background:var(--good)} .dot.bad{background:var(--bad)}
+.rosterhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.count{font-weight:850;color:var(--accent)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:660px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;background:var(--panel2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+.weekgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.week{border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel2);min-height:86px}
+.week.good{border-color:color-mix(in srgb,var(--good) 65%,var(--line))}
+.week.warn{border-color:var(--warn)}
+.week.bad{border-color:var(--bad);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--bad) 25%,transparent)}
+.week.danger{border-color:var(--danger);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--danger) 45%,transparent)}
+.weeknum{font-size:12px;color:var(--muted)}
+.weekcount{font-size:25px;font-weight:900;line-height:1.1;margin:3px 0}
+.weeklabel{font-size:11px;font-weight:800}
+.coverage{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.cover{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px}
+.cover strong{display:block;margin-bottom:3px}
+.cover small{color:var(--muted)}
+.settings{display:none;margin-bottom:16px}
+.settings.open{display:block}
+.settingsGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.field label{display:block;font-size:11px;color:var(--muted);font-weight:800;margin:0 0 5px;text-transform:uppercase;letter-spacing:.04em}
+.settingsSection{margin:14px 0 8px;font-weight:900}
+.span2{grid-column:span 2}
+.controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.manual{margin-top:12px}
+.manualGrid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px}
+.empty{padding:18px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;z-index:60;background:#0b1019;color:#fff;border:1px solid #49536a;border-radius:12px;padding:10px 14px;font-weight:750;transition:.18s}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.help{display:none}.help.open{display:block}
+.help p,.help li{color:var(--muted);line-height:1.5;font-size:13px}
+kbd{background:var(--bg2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+footer{color:var(--muted);font-size:11px;text-align:center;padding:18px 0 6px}
+body.draft-mode .nonDraft{display:none!important}
+body.draft-mode .wrap{max-width:1450px}
+body.draft-mode .grid{grid-template-columns:minmax(0,1.55fr) minmax(300px,.45fr)}
+@media(max-width:850px){
+ .wrap{padding:12px}.head{padding:12px}
+ .grid{grid-template-columns:1fr}
+ .weekgrid{grid-template-columns:repeat(2,1fr)}
+ .settingsGrid{grid-template-columns:repeat(2,1fr)}
+ .span2{grid-column:span 2}
+ .result{grid-template-columns:1fr}
+ .resultBtns{width:100%}.resultBtns .mini{flex:1}
+ body.draft-mode .grid{grid-template-columns:1fr}
+}
+@media(max-width:520px){
+ .brand .sub{display:none}
+ .actions{width:100%}.actions .btn{flex:1}
+ .settingsGrid{grid-template-columns:1fr}.span2{grid-column:span 1}
+ .manualGrid{grid-template-columns:1fr 1fr}
+ .manualGrid input{grid-column:span 2}
+ .weekgrid{grid-template-columns:repeat(2,1fr)}
+ .coverage{grid-template-columns:1fr}
+ .searchrow{grid-template-columns:1fr}
+ .results{top:52px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div class="head">
+  <div class="brand"><h1>Bye-pocalypse</h1><div class="sub">Draft for talent. Avoid accidental roster extinction.</div></div>
+  <div class="actions">
+   <button class="btn secondary" id="undoBtn">↶ Undo</button>
+   <button class="btn secondary" id="draftModeBtn">Draft Mode</button>
+   <button class="btn secondary" id="settingsBtn">League Settings</button>
+   <button class="btn secondary" id="helpBtn">Help</button>
+  </div>
+ </div>
+</header>
+
+<main class="wrap">
+ <section class="card settings" id="settings">
+  <div class="rosterhead"><h2>League Settings</h2><button class="mini" id="closeSettingsTop">✕ Close</button></div>
+  <div class="settingsGrid">
+   <div class="field span2"><label>Favorite team / theme</label><select id="Theme"></select></div>
+   <div class="field"><label>Total roster size</label><input id="TotalRoster" type="number" min="1" max="60"></div>
+   <div class="field"><label>Calculated bench</label><input id="BenchCalc" disabled></div>
+  </div>
+  <div class="settingsSection">Offense & Team Defense</div>
+  <div class="settingsGrid">
+   <div class="field"><label>QB</label><input id="QB" type="number" min="0" max="8"></div>
+   <div class="field"><label>RB</label><input id="RB" type="number" min="0" max="10"></div>
+   <div class="field"><label>WR</label><input id="WR" type="number" min="0" max="10"></div>
+   <div class="field"><label>TE</label><input id="TE" type="number" min="0" max="8"></div>
+   <div class="field"><label>FLEX</label><input id="FLEX" type="number" min="0" max="8"></div>
+   <div class="field"><label>Superflex</label><input id="SF" type="number" min="0" max="8"></div>
+   <div class="field"><label>K</label><input id="K" type="number" min="0" max="4"></div>
+   <div class="field"><label>DST</label><input id="DST" type="number" min="0" max="4"></div>
+  </div>
+  <div class="settingsSection">Individual Defensive Players</div>
+  <div class="settingsGrid">
+   <div class="field"><label>DL</label><input id="DL" type="number" min="0" max="12"></div>
+   <div class="field"><label>LB</label><input id="LB" type="number" min="0" max="12"></div>
+   <div class="field"><label>DB</label><input id="DB" type="number" min="0" max="12"></div>
+   <div class="field"><label>IDP Flex</label><input id="IDPFLEX" type="number" min="0" max="12"></div>
+  </div>
+  <div class="settingsSection">Draft Guardrails</div>
+  <div class="settingsGrid">
+   <div class="field"><label>IR spots</label><input id="IR" type="number" min="0" max="12"></div>
+   <div class="field"><label>Preferred max on one bye</label><input id="ByeMax" type="number" min="1" max="20"></div>
+   <div class="field"><label>Same-position bye warning at</label><input id="PosMax" type="number" min="2" max="10"></div>
+  </div>
+  <div class="notice" style="margin-top:12px">Bench is calculated as total roster size minus starting lineup slots. IR is tracked separately and does not increase your normal draft capacity.</div>
+  <div class="controls" style="margin-top:12px"><button class="btn" id="closeSettingsBottom">✓ Save & Close</button></div>
+ </section>
+
+ <section class="card help nonDraft" id="help">
+  <div class="rosterhead"><h2>How it works</h2><button class="mini" id="closeHelp">✕ Close</button></div>
+  <p><strong>My Team</strong> adds a player to your roster. <strong>Taken</strong> removes that player from search without adding them to you. Bye warnings are advice, not a command to pass on a stud.</p>
+  <p><strong>IDP:</strong> DL accepts DL/DE/DT, DB accepts DB/CB/S, and IDP Flex accepts any supported individual defender. Dual-eligible players can satisfy any matching slot.</p>
+  <p><strong>Colors:</strong> green is healthy, yellow is getting tight, red means you reached/exceeded your preferred bye cap or created a lineup-coverage problem.</p>
+  <p><strong>Player data:</strong> V1.0 refreshes active NFL players from Sleeper at most once per day and caches a compact copy in your browser. Team defenses are generated separately. Sleeper's player API is read-only and supports active-player filtering. </p>
+ </section>
+
+ <div class="grid">
+  <div>
+   <section class="card">
+    <h2>Player Search</h2>
+    <div class="searchbox">
+     <div class="searchrow">
+      <input id="search" autocomplete="off" placeholder="Search player, team, or position — e.g. Micah Parsons, BAL LB, Chase">
+      <button class="btn secondary" id="refreshPlayers">Refresh Players</button>
+     </div>
+     <div class="results" id="results"></div>
+    </div>
+    <div class="statusline"><span class="dot" id="dataDot"></span><span id="dataStatus">Loading NFL player data…</span></div>
+    <div class="manual nonDraft">
+     <div class="notice">Can't find somebody? Manual fallback keeps the draft moving.</div>
+     <div class="manualGrid" style="margin-top:8px">
+      <input id="manualName" placeholder="Player name">
+      <select id="manualPos"><option>QB</option><option>RB</option><option>WR</option><option>TE</option><option>K</option><option>DST</option><option>DL</option><option>DE</option><option>DT</option><option>LB</option><option>DB</option><option>CB</option><option>S</option></select>
+      <select id="manualTeam"></select>
+      <button class="btn" id="manualAdd">Add</button>
+     </div>
+    </div>
+   </section>
+
+   <section class="card" style="margin-top:16px">
+    <div class="rosterhead"><h2>My Team</h2><div class="count" id="rosterCount">0 / 0</div></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Player</th><th>Pos</th><th>Team</th><th>Bye</th><th>Fit</th><th></th></tr></thead>
+      <tbody id="rosterBody"></tbody>
+    </table></div>
+   </section>
+
+   <section class="card" style="margin-top:16px">
+    <h2>Bye-pocalypse Meter</h2>
+    <div class="weekgrid" id="weeks"></div>
+   </section>
+  </div>
+
+  <aside>
+   <section class="card">
+    <h2>Lineup Coverage</h2>
+    <div class="coverage" id="coverage"></div>
+   </section>
+   <section class="card" style="margin-top:16px">
+    <div class="rosterhead"><h2>Taken</h2><span class="count" id="takenCount">0</span></div>
+    <div id="takenList"></div>
+   </section>
+   <section class="card nonDraft" style="margin-top:16px">
+    <h2>Draft Controls</h2>
+    <div class="controls">
+     <button class="btn secondary" id="exportBtn">Export CSV</button>
+     <button class="btn danger" id="resetBtn">Clear Draft</button>
+    </div>
+   </section>
+  </aside>
+ </div>
+
+ <footer>Bye-pocalypse V1.0 • 2026 bye weeks • Player data refreshed from Sleeper when available</footer>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+const VERSION=1;
+const STATE_KEY="bp-v1-state";
+const PLAYER_CACHE_KEY="bp-v1-player-cache";
+const CACHE_MS=24*60*60*1000;
+const API_URL="https://api.sleeper.app/v1/players/nfl?active=true";
+
+const BYES={ARI:14,ATL:11,BAL:13,BUF:7,CAR:5,CHI:10,CIN:6,CLE:11,DAL:14,DEN:10,DET:6,GB:11,HOU:8,IND:13,JAX:7,KC:5,LV:13,LAC:7,LAR:11,MIA:6,MIN:6,NE:11,NO:8,NYG:8,NYJ:13,PHI:10,PIT:9,SF:8,SEA:11,TB:10,TEN:9,WAS:7};
+const TEAM_NAMES={ARI:"Arizona Cardinals",ATL:"Atlanta Falcons",BAL:"Baltimore Ravens",BUF:"Buffalo Bills",CAR:"Carolina Panthers",CHI:"Chicago Bears",CIN:"Cincinnati Bengals",CLE:"Cleveland Browns",DAL:"Dallas Cowboys",DEN:"Denver Broncos",DET:"Detroit Lions",GB:"Green Bay Packers",HOU:"Houston Texans",IND:"Indianapolis Colts",JAX:"Jacksonville Jaguars",KC:"Kansas City Chiefs",LV:"Las Vegas Raiders",LAC:"Los Angeles Chargers",LAR:"Los Angeles Rams",MIA:"Miami Dolphins",MIN:"Minnesota Vikings",NE:"New England Patriots",NO:"New Orleans Saints",NYG:"New York Giants",NYJ:"New York Jets",PHI:"Philadelphia Eagles",PIT:"Pittsburgh Steelers",SF:"San Francisco 49ers",SEA:"Seattle Seahawks",TB:"Tampa Bay Buccaneers",TEN:"Tennessee Titans",WAS:"Washington Commanders"};
+const TEAM_ORDER=Object.keys(TEAM_NAMES);
+const TEAM_ALIAS={JAC:"JAX",LA:"LAR"};
+const SUPPORTED=new Set(["QB","RB","WR","TE","K","DL","DE","DT","LB","DB","CB","S"]);
+
+const THEMES={
+NEUTRAL:["#101828","#7C9CFF"],ARI:["#97233F","#FFB612"],ATL:["#101820","#A71930"],BAL:["#241773","#9E7C0C"],BUF:["#00338D","#C60C30"],CAR:["#101820","#0085CA"],CHI:["#0B162A","#C83803"],CIN:["#000000","#FB4F14"],CLE:["#311D00","#FF3C00"],DAL:["#002244","#869397"],DEN:["#002244","#FB4F14"],DET:["#0076B6","#B0B7BC"],GB:["#203731","#FFB612"],HOU:["#03202F","#A71930"],IND:["#002C5F","#A2AAAD"],JAX:["#101820","#00A5B5"],KC:["#E31837","#FFB81C"],LV:["#000000","#A5ACAF"],LAC:["#0080C6","#FFC20E"],LAR:["#003594","#FFA300"],MIA:["#008E97","#FC4C02"],MIN:["#4F2683","#FFC62F"],NE:["#002244","#C60C30"],NO:["#101820","#D3BC8D"],NYG:["#0B2265","#A71930"],NYJ:["#125740","#FFFFFF"],PHI:["#004C54","#A5ACAF"],PIT:["#101820","#FFB612"],SF:["#AA0000","#B3995D"],SEA:["#002244","#69BE28"],TB:["#D50A0A","#FF7900"],TEN:["#0C2340","#4B92DB"],WAS:["#5A1414","#FFB612"]
+};
+
+const DEFAULTS={QB:1,RB:2,WR:2,TE:1,FLEX:1,SF:0,K:1,DST:1,DL:0,LB:0,DB:0,IDPFLEX:0,TotalRoster:16,IR:1,ByeMax:3,PosMax:2,Theme:"NEUTRAL",DraftMode:false};
+const SETTING_IDS=["QB","RB","WR","TE","FLEX","SF","K","DST","DL","LB","DB","IDPFLEX","TotalRoster","IR","ByeMax","PosMax"];
+
+let state=loadState();
+let players=[];
+let playerSource="loading";
+let playerUpdated=null;
+let history=[];
+
+function $(id){return document.getElementById(id)}
+function on(id,event,fn){const el=$(id);if(el)el.addEventListener(event,fn)}
+function safeGet(key){try{return localStorage.getItem(key)}catch(e){return null}}
+function safeSet(key,val){try{localStorage.setItem(key,val);return true}catch(e){return false}}
+function clone(obj){return JSON.parse(JSON.stringify(obj))}
+function normalizeTeam(t){if(!t)return "";t=String(t).toUpperCase();return TEAM_ALIAS[t]||t}
+function num(v,d=0){v=parseInt(v,10);return Number.isFinite(v)?v:d}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function loadState(){
+ let x=null;
+ try{x=JSON.parse(safeGet(STATE_KEY)||"null")}catch(e){}
+ if(!x||typeof x!=="object")x={version:VERSION,mine:[],taken:[],custom:[],settings:{}};
+ x.version=VERSION;
+ x.mine=Array.isArray(x.mine)?x.mine:[];
+ x.taken=Array.isArray(x.taken)?x.taken:[];
+ x.custom=Array.isArray(x.custom)?x.custom:[];
+ x.settings=x.settings||{};
+ Object.keys(DEFAULTS).forEach(k=>{if(x.settings[k]===undefined)x.settings[k]=DEFAULTS[k]});
+ return x;
+}
+function save(){safeSet(STATE_KEY,JSON.stringify(state))}
+function pushHistory(){
+ history.push(clone({mine:state.mine,taken:state.taken,custom:state.custom,settings:state.settings}));
+ if(history.length>30)history.shift();
+ renderUndo();
+}
+function undo(){
+ if(!history.length)return toast("Nothing to undo.");
+ const prev=history.pop();
+ state.mine=prev.mine;state.taken=prev.taken;state.custom=prev.custom;state.settings=prev.settings;
+ save();syncSettings();applyTheme();renderAll();toast("Last action undone.");
+}
+function toast(msg){
+ const t=$("toast");t.textContent=msg;t.classList.add("show");
+ clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+function mix(hex1,hex2,p){
+ const h=x=>parseInt(x,16), a=hex1.replace("#",""),b=hex2.replace("#","");
+ const r=Math.round(h(a.slice(0,2))*(1-p)+h(b.slice(0,2))*p);
+ const g=Math.round(h(a.slice(2,4))*(1-p)+h(b.slice(2,4))*p);
+ const bl=Math.round(h(a.slice(4,6))*(1-p)+h(b.slice(4,6))*p);
+ return "#"+[r,g,bl].map(x=>x.toString(16).padStart(2,"0")).join("");
+}
+function luminance(hex){
+ const a=hex.replace("#","");const vals=[0,2,4].map(i=>parseInt(a.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));
+ return .2126*vals[0]+.7152*vals[1]+.0722*vals[2];
+}
+function applyTheme(){
+ const key=state.settings.Theme in THEMES?state.settings.Theme:"NEUTRAL";
+ const [base,accent]=THEMES[key];
+ const dark=luminance(base)<.38;
+ const bg=dark?mix(base,"#000000",.55):mix(base,"#000000",.72);
+ const bg2=dark?mix(base,"#0b1220",.38):mix(base,"#0b1220",.55);
+ const panel=dark?mix(base,"#162033",.48):mix(base,"#162033",.6);
+ const panel2=dark?mix(base,"#24334e",.56):mix(base,"#24334e",.64);
+ document.documentElement.style.setProperty("--bg",bg);
+ document.documentElement.style.setProperty("--bg2",bg2);
+ document.documentElement.style.setProperty("--panel",panel);
+ document.documentElement.style.setProperty("--panel2",panel2);
+ document.documentElement.style.setProperty("--line",mix(panel2,"#aeb9cc",.28));
+ document.documentElement.style.setProperty("--accent",accent);
+ document.documentElement.style.setProperty("--accentText",luminance(accent)>.48?"#101318":"#ffffff");
+ const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute("content",bg);
+}
+
+function starterSlots(){
+ return ["QB","RB","WR","TE","FLEX","SF","K","DST","DL","LB","DB","IDPFLEX"].reduce((n,k)=>n+num(state.settings[k]),0);
+}
+function benchSpots(){return Math.max(0,num(state.settings.TotalRoster)-starterSlots())}
+function rosterFull(){return state.mine.length>=num(state.settings.TotalRoster)}
+function slotEligibility(slot){
+ if(slot==="FLEX")return new Set(["RB","WR","TE"]);
+ if(slot==="SF")return new Set(["QB","RB","WR","TE"]);
+ if(slot==="DL")return new Set(["DL","DE","DT"]);
+ if(slot==="DB")return new Set(["DB","CB","S"]);
+ if(slot==="IDPFLEX")return new Set(["DL","DE","DT","LB","DB","CB","S"]);
+ return new Set([slot]);
+}
+function playerPositions(p){return new Set((p.positions&&p.positions.length?p.positions:[p.pos]).filter(Boolean))}
+function eligible(p,slot){
+ const need=slotEligibility(slot),have=playerPositions(p);
+ for(const x of have)if(need.has(x))return true;
+ return false;
+}
+function buildSlots(){
+ const out=[];
+ ["QB","RB","WR","TE","K","DST","DL","LB","DB"].forEach(k=>{for(let i=0;i<num(state.settings[k]);i++)out.push(k)});
+ for(let i=0;i<num(state.settings.FLEX);i++)out.push("FLEX");
+ for(let i=0;i<num(state.settings.SF);i++)out.push("SF");
+ for(let i=0;i<num(state.settings.IDPFLEX);i++)out.push("IDPFLEX");
+ return out;
+}
+function canFill(roster,week){
+ const available=roster.filter(p=>p.bye!==week);
+ const slots=buildSlots();
+ if(available.length<slots.length)return false;
+ const order=slots.map((slot,i)=>({slot,i,c:available.reduce((n,p)=>n+(eligible(p,slot)?1:0),0)})).sort((a,b)=>a.c-b.c);
+ const used=new Array(available.length).fill(false);
+ function dfs(si){
+   if(si===order.length)return true;
+   const slot=order[si].slot;
+   for(let i=0;i<available.length;i++){
+     if(!used[i]&&eligible(available[i],slot)){used[i]=true;if(dfs(si+1))return true;used[i]=false}
+   }
+   return false;
+ }
+ return dfs(0);
+}
+function canonicalGroup(p){
+ const pos=[...(playerPositions(p))];
+ if(pos.some(x=>["DL","DE","DT"].includes(x)))return "DL";
+ if(pos.some(x=>["DB","CB","S"].includes(x)))return "DB";
+ if(pos.includes("LB"))return "LB";
+ return pos[0]||"?";
+}
+function evaluate(p,roster=state.mine){
+ const combined=roster.concat([p]);
+ const byeCount=combined.filter(x=>x.bye===p.bye).length;
+ const group=canonicalGroup(p);
+ const same=combined.filter(x=>x.bye===p.bye&&canonicalGroup(x)===group).length;
+ let level="good",notes=[];
+ if(byeCount>=num(state.settings.ByeMax)){level=byeCount>num(state.settings.ByeMax)?"bad":"warn";notes.push(`${byeCount} players off Week ${p.bye}`)}
+ if(same>=num(state.settings.PosMax)){level="bad";notes.push(`${same} ${group} on the same bye`)}
+ if(combined.length>=starterSlots()&&!canFill(combined,p.bye)){level="bad";notes.push(`lineup coverage fails Week ${p.bye}`)}
+ if(!notes.length)notes.push(`Week ${p.bye} fits`);
+ return {level,text:notes.join(" • ")};
+}
+
+function compactSleeper(raw){
+ const out=[];
+ Object.keys(raw||{}).forEach(id=>{
+   const x=raw[id]||{};
+   const team=normalizeTeam(x.team);
+   if(!TEAM_NAMES[team])return;
+   const f=Array.isArray(x.fantasy_positions)?x.fantasy_positions:[];
+   const pos=[...new Set(f.concat(x.position?[x.position]:[]).map(String).map(s=>s.toUpperCase()).filter(p=>SUPPORTED.has(p)))];
+   if(!pos.length)return;
+   const name=(x.full_name||[x.first_name,x.last_name].filter(Boolean).join(" ")).trim();
+   if(!name)return;
+   out.push({id:"s"+id,name,positions:pos,pos:pos[0],team,bye:BYES[team],number:x.number??null,status:x.status||"Active"});
+ });
+ return out.sort((a,b)=>a.name.localeCompare(b.name));
+}
+function dstPlayers(){
+ return TEAM_ORDER.map(t=>({id:"dst-"+t,name:TEAM_NAMES[t],positions:["DST"],pos:"DST",team:t,bye:BYES[t],status:"Team Defense"}));
+}
+function cachePlayers(list){
+ const data={ts:Date.now(),players:list};
+ safeSet(PLAYER_CACHE_KEY,JSON.stringify(data));
+}
+function readPlayerCache(){
+ try{
+   const x=JSON.parse(safeGet(PLAYER_CACHE_KEY)||"null");
+   if(x&&Array.isArray(x.players)&&x.players.length)return x;
+ }catch(e){}
+ return null;
+}
+async function loadPlayers(force=false){
+ const cached=readPlayerCache();
+ if(cached&&!force){
+   players=cached.players.concat(dstPlayers());
+   playerUpdated=new Date(cached.ts);playerSource=Date.now()-cached.ts<CACHE_MS?"cached":"stale cache";
+   renderDataStatus();renderSearch();
+   if(Date.now()-cached.ts<CACHE_MS)return;
+ }
+ setDataStatus("loading",cached?"Checking for roster updates…":"Loading active NFL roster…");
+ try{
+   const res=await fetch(API_URL,{cache:"no-store"});
+   if(!res.ok)throw new Error("HTTP "+res.status);
+   const raw=await res.json();
+   const compact=compactSleeper(raw);
+   if(compact.length<500)throw new Error("Player response looked incomplete");
+   cachePlayers(compact);
+   players=compact.concat(dstPlayers());
+   playerUpdated=new Date();playerSource="live";
+   renderDataStatus();renderSearch();
+   if(force)toast(`Player database refreshed: ${compact.length} active players.`);
+ }catch(err){
+   if(cached){
+     players=cached.players.concat(dstPlayers());playerUpdated=new Date(cached.ts);playerSource="cached";
+     setDataStatus("good",`Using cached roster (${cached.players.length} players) • update failed`);
+   }else{
+     players=dstPlayers();playerUpdated=null;playerSource="team defenses only";
+     setDataStatus("bad","Couldn't reach player service. Team defenses + manual entry remain available.");
+   }
+ }
+}
+function setDataStatus(kind,text){
+ $("dataDot").className="dot "+(kind==="good"?"good":kind==="bad"?"bad":"");
+ $("dataStatus").textContent=text;
+}
+function renderDataStatus(){
+ const n=players.filter(p=>p.pos!=="DST").length;
+ const when=playerUpdated?playerUpdated.toLocaleString():"";
+ setDataStatus("good",`${n} active players + 32 DST • ${playerSource}${when?" • updated "+when:""}`);
+}
+
+function allKnownPlayers(){
+ const map=new Map();
+ players.concat(state.custom).forEach(p=>map.set(p.id,p));
+ state.mine.concat(state.taken).forEach(p=>map.set(p.id,p));
+ return [...map.values()];
+}
+function idSet(arr){return new Set(arr.map(p=>p.id))}
+function addMine(p){
+ if(rosterFull()){toast(`Roster is full at ${state.settings.TotalRoster} players.`);return}
+ pushHistory();
+ state.taken=state.taken.filter(x=>x.id!==p.id);
+ if(!state.mine.some(x=>x.id===p.id))state.mine.push(p);
+ save();renderAll();$("search").value="";$("results").classList.remove("open");
+ toast(`${p.name} added to My Team.`);
+}
+function markTaken(p){
+ pushHistory();
+ state.mine=state.mine.filter(x=>x.id!==p.id);
+ if(!state.taken.some(x=>x.id===p.id))state.taken.push(p);
+ save();renderAll();$("search").value="";$("results").classList.remove("open");
+ toast(`${p.name} marked Taken.`);
+}
+function makeAvailable(p){
+ pushHistory();state.mine=state.mine.filter(x=>x.id!==p.id);state.taken=state.taken.filter(x=>x.id!==p.id);save();renderAll();toast(`${p.name} returned to Available.`);
+}
+function moveTakenToMine(p){addMine(p)}
+function moveMineToTaken(p){markTaken(p)}
+
+function searchPlayers(q){
+ q=q.trim().toLowerCase();
+ if(!q)return [];
+ const tokens=q.split(/\s+/).filter(Boolean);
+ const mine=idSet(state.mine),taken=idSet(state.taken);
+ return players.concat(state.custom).filter(p=>{
+   if(mine.has(p.id)||taken.has(p.id))return false;
+   const hay=[p.name,p.team,...(p.positions||[p.pos])].join(" ").toLowerCase();
+   return tokens.every(t=>hay.includes(t));
+ }).slice(0,30);
+}
+function renderSearch(){
+ const box=$("results"),q=$("search").value.trim();
+ if(!q){box.classList.remove("open");box.innerHTML="";return}
+ const hits=searchPlayers(q);box.classList.add("open");
+ if(!hits.length){box.innerHTML=`<div class="empty">${playerSource==="loading"?"Player database is still loading…":"No available matches."}</div>`;return}
+ box.innerHTML=hits.map((p,i)=>{
+   const r=evaluate(p),cls=r.level==="good"?"risk-good":r.level==="warn"?"risk-warn":"risk-bad";
+   return `<div class="result">
+    <div><div class="playername">${esc(p.name)}</div><div class="meta">${esc((p.positions||[p.pos]).join("/"))} • ${esc(p.team)} • Bye ${p.bye}</div><div class="pills"><span class="pill ${cls}">${esc(r.text)}</span></div></div>
+    <div class="resultBtns"><button class="mini primary" data-act="mine" data-idx="${i}">My Team</button><button class="mini" data-act="taken" data-idx="${i}">Taken</button></div>
+   </div>`;
+ }).join("");
+ box.querySelectorAll("button").forEach(b=>b.addEventListener("click",()=>{
+   const p=hits[num(b.dataset.idx)];if(!p)return;b.dataset.act==="mine"?addMine(p):markTaken(p);
+ }));
+}
+
+function renderRoster(){
+ $("rosterCount").textContent=`${state.mine.length} / ${state.settings.TotalRoster}`;
+ const body=$("rosterBody");
+ if(!state.mine.length){body.innerHTML='<tr><td colspan="6" class="empty">No players drafted yet.</td></tr>';return}
+ body.innerHTML=state.mine.map((p,i)=>{
+   const r=evaluate(p,state.mine.filter(x=>x.id!==p.id));
+   const cls=r.level==="good"?"risk-good":r.level==="warn"?"risk-warn":"risk-bad";
+   return `<tr><td><strong>${esc(p.name)}</strong></td><td>${esc((p.positions||[p.pos]).join("/"))}</td><td>${esc(p.team)}</td><td>${p.bye}</td><td class="${cls}">${esc(r.text)}</td><td><button class="mini" data-roster="${i}">Taken</button> <button class="mini" data-remove="${i}">×</button></td></tr>`;
+ }).join("");
+ body.querySelectorAll("[data-roster]").forEach(b=>b.addEventListener("click",()=>moveMineToTaken(state.mine[num(b.dataset.roster)])));
+ body.querySelectorAll("[data-remove]").forEach(b=>b.addEventListener("click",()=>makeAvailable(state.mine[num(b.dataset.remove)])));
+}
+function renderTaken(){
+ $("takenCount").textContent=state.taken.length;
+ const el=$("takenList");
+ if(!state.taken.length){el.innerHTML='<div class="empty">Nobody marked Taken yet.</div>';return}
+ const recent=[...state.taken].reverse().slice(0,40);
+ el.innerHTML=recent.map((p,i)=>`<div class="result" style="grid-template-columns:minmax(0,1fr) auto"><div><div class="playername">${esc(p.name)}</div><div class="meta">${esc((p.positions||[p.pos]).join("/"))} • ${p.team}</div></div><div class="resultBtns"><button class="mini primary" data-tmine="${i}">My Team</button><button class="mini" data-avail="${i}">Available</button></div></div>`).join("");
+ el.querySelectorAll("[data-tmine]").forEach(b=>b.addEventListener("click",()=>moveTakenToMine(recent[num(b.dataset.tmine)])));
+ el.querySelectorAll("[data-avail]").forEach(b=>b.addEventListener("click",()=>makeAvailable(recent[num(b.dataset.avail)])));
+}
+function weekStatus(w){
+ const onBye=state.mine.filter(p=>p.bye===w),count=onBye.length,cap=num(state.settings.ByeMax);
+ let level="good",label="All clear";
+ if(count===cap-1&&count>0){level="warn";label="Getting tight"}
+ if(count>=cap){level=count>cap?"danger":"bad";label=count>cap?"BYEPOCALYPSE":"At cap"}
+ if(state.mine.length>=starterSlots()&&!canFill(state.mine,w)){level="danger";label="Lineup fails"}
+ return {count,level,label,names:onBye.map(p=>p.name)};
+}
+function renderWeeks(){
+ $("weeks").innerHTML=Array.from({length:10},(_,i)=>i+5).map(w=>{
+   const x=weekStatus(w);
+   return `<div class="week ${x.level}" title="${esc(x.names.join(", "))}"><div class="weeknum">WEEK ${w}</div><div class="weekcount">${x.count}</div><div class="weeklabel">${x.label}</div></div>`;
+ }).join("");
+}
+function positionCount(slot){
+ return state.mine.reduce((n,p)=>n+(eligible(p,slot)?1:0),0);
+}
+function renderCoverage(){
+ const slots=[
+   ["QB","QB"],["RB","RB"],["WR","WR"],["TE","TE"],["FLEX","FLEX"],["SF","Superflex"],["K","K"],["DST","DST"],
+   ["DL","DL"],["LB","LB"],["DB","DB"],["IDPFLEX","IDP Flex"]
+ ].filter(([k])=>num(state.settings[k])>0);
+ const cards=slots.map(([k,label])=>{
+   const need=num(state.settings[k]),have=positionCount(k),ok=have>=need;
+   return `<div class="cover"><strong class="${ok?"risk-good":"risk-warn"}">${label}: ${have} / ${need}</strong><small>${ok?"Starter pool covered":"Still building"}</small></div>`;
+ });
+ cards.push(`<div class="cover"><strong>Bench: ${benchSpots()}</strong><small>Calculated from total roster</small></div>`);
+ cards.push(`<div class="cover"><strong>IR: ${state.settings.IR}</strong><small>Separate from draft capacity</small></div>`);
+ $("coverage").innerHTML=cards.join("");
+}
+function renderUndo(){$("undoBtn").disabled=!history.length}
+function renderAll(){renderRoster();renderTaken();renderWeeks();renderCoverage();renderUndo();renderSearch()}
+
+function syncSettings(){
+ const theme=$("Theme");theme.innerHTML='<option value="NEUTRAL">NFL Neutral</option>'+TEAM_ORDER.map(t=>`<option value="${t}">${TEAM_NAMES[t]}</option>`).join("");
+ theme.value=state.settings.Theme;
+ SETTING_IDS.forEach(k=>{if($(k))$(k).value=state.settings[k]});
+ $("BenchCalc").value=benchSpots();
+ document.body.classList.toggle("draft-mode",!!state.settings.DraftMode);
+ $("draftModeBtn").textContent=state.settings.DraftMode?"Exit Draft Mode":"Draft Mode";
+}
+function settingsChanged(){
+ pushHistory();
+ SETTING_IDS.forEach(k=>{if($(k))state.settings[k]=num($(k).value,DEFAULTS[k])});
+ state.settings.Theme=$("Theme").value;
+ const starts=starterSlots();
+ if(state.settings.TotalRoster<starts){state.settings.TotalRoster=starts;$("TotalRoster").value=starts;toast(`Roster size raised to ${starts} to fit your starters.`)}
+ save();$("BenchCalc").value=benchSpots();applyTheme();renderAll();
+}
+function toggleDraftMode(){
+ pushHistory();state.settings.DraftMode=!state.settings.DraftMode;save();syncSettings();renderAll();
+}
+
+function addManual(){
+ const name=$("manualName").value.trim(),pos=$("manualPos").value,team=$("manualTeam").value;
+ if(!name)return toast("Enter a player name.");
+ const p={id:"custom-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),name,positions:[pos],pos,team,bye:BYES[team],status:"Manual"};
+ pushHistory();state.custom.push(p);save();addMineNoHistory(p);$("manualName").value="";
+}
+function addMineNoHistory(p){
+ if(rosterFull()){toast(`Roster is full at ${state.settings.TotalRoster} players.`);return}
+ state.taken=state.taken.filter(x=>x.id!==p.id);if(!state.mine.some(x=>x.id===p.id))state.mine.push(p);save();renderAll();toast(`${p.name} added to My Team.`);
+}
+function exportCSV(){
+ const rows=[["Player","Positions","Team","Bye"],...state.mine.map(p=>[p.name,(p.positions||[p.pos]).join("/"),p.team,p.bye])];
+ const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+ const blob=new Blob([csv],{type:"text/csv"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="bye-pocalypse-roster.csv";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),500);
+}
+function clearDraft(){
+ if(!confirm("Clear your entire draft board? This removes My Team and Taken players. League settings stay saved."))return;
+ if(!confirm("Really clear it? This cannot be undone after you leave/reload the page."))return;
+ pushHistory();state.mine=[];state.taken=[];save();renderAll();toast("Draft cleared.");
+}
+
+function init(){
+ // Team dropdowns
+ $("manualTeam").innerHTML=TEAM_ORDER.map(t=>`<option value="${t}">${t} — ${TEAM_NAMES[t]}</option>`).join("");
+ syncSettings();applyTheme();renderAll();
+
+ on("search","input",renderSearch);on("search","focus",renderSearch);
+ document.addEventListener("click",e=>{if(!e.target.closest(".searchbox"))$("results").classList.remove("open")});
+ on("settingsBtn","click",()=>{$("settings").classList.toggle("open")});
+ on("closeSettingsTop","click",()=>{$("settings").classList.remove("open")});
+ on("closeSettingsBottom","click",()=>{$("settings").classList.remove("open")});
+ on("helpBtn","click",()=>{$("help").classList.toggle("open")});
+ on("closeHelp","click",()=>{$("help").classList.remove("open")});
+ on("undoBtn","click",undo);on("draftModeBtn","click",toggleDraftMode);
+ on("manualAdd","click",addManual);on("exportBtn","click",exportCSV);on("resetBtn","click",clearDraft);
+ on("refreshPlayers","click",()=>loadPlayers(true));
+ SETTING_IDS.forEach(k=>on(k,"change",settingsChanged));on("Theme","change",settingsChanged);
+ loadPlayers(false);
+}
+try{init()}catch(err){
+ console.error(err);
+ document.body.innerHTML=`<main class="wrap"><section class="card"><h1>Bye-pocalypse hit a loading error</h1><p>${esc(err&&err.message?err.message:String(err))}</p></section></main>`;
+}
+})();
+</script>
+</body>
+</html>
